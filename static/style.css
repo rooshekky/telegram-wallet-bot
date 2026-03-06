@@ -1,0 +1,33 @@
+body{
+background:#111;
+color:white;
+font-family:Arial;
+margin:0;
+}
+
+.sidebar{
+width:200px;
+height:100vh;
+background:#1e1e1e;
+position:fixed;
+padding:20px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+margin:10px 0;
+text-decoration:none;
+}
+
+.main{
+margin-left:220px;
+padding:40px;
+}
+
+.card{
+background:#1f1f1f;
+padding:20px;
+margin:10px;
+border-radius:10px;
+}
