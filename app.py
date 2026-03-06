@@ -1,70 +1,145 @@
-from flask import Flask,render_template
-from wallet import load_wallet
-from solana_chain import load_wallet as load_sol,get_balance
-from evm_chains import get_balances
-from portfolio import prices
+import os
+from flask import Flask, render_template, request, session, redirect
+import qrcode
 
-app=Flask(__name__)
+from database import init_db
+from auth import verify_telegram
+from portfolio import prices
+from wallet import load_wallet
+from evm_chains import get_balances
+from solana_chain import load_wallet as load_sol, get_balance
+
+app = Flask(__name__)
+
+app.secret_key = os.getenv("SECRET_KEY", "wallet-secret")
+
+init_db()
+
 
 @app.route("/")
 def dashboard():
 
-    evm=load_wallet()
+    if "user" not in session:
+        return redirect("/login")
 
-    sol=load_sol()
+    evm = load_wallet()
+    sol = load_sol()
 
-    price=prices()
+    balances = {}
+    total = 0
 
-    balances={}
-
-    total=0
+    price = prices()
 
     if evm:
 
-        address,_=evm
+        address, _ = evm
 
-        evmbal=get_balances(address)
+        evm_bal = get_balances(address)
 
-        eth=evmbal["eth"]
-        matic=evmbal["polygon"]
-        bnb=evmbal["bsc"]
+        eth = evm_bal.get("eth", 0)
+        matic = evm_bal.get("polygon", 0)
+        bnb = evm_bal.get("bsc", 0)
 
-        balances["ETH"]=eth
-        balances["MATIC"]=matic
-        balances["BNB"]=bnb
+        balances["ETH"] = eth
+        balances["MATIC"] = matic
+        balances["BNB"] = bnb
 
-        total+=eth*price["ethereum"]["usd"]
-        total+=matic*price["matic-network"]["usd"]
-        total+=bnb*price["binancecoin"]["usd"]
+        total += eth * price["ethereum"]["usd"]
+        total += matic * price["matic-network"]["usd"]
+        total += bnb * price["binancecoin"]["usd"]
 
     if sol:
 
-        addr,_=sol
+        sol_address, _ = sol
 
-        solbal=get_balance(addr)
+        sol_balance = get_balance(sol_address)
 
-        balances["SOL"]=solbal
+        balances["SOL"] = sol_balance
 
-        total+=solbal*price["solana"]["usd"]
+        total += sol_balance * price["solana"]["usd"]
 
     return render_template(
-    "dashboard.html",
-    balances=balances,
-    total=round(total,2)
+        "dashboard.html",
+        balances=balances,
+        total=round(total, 2)
     )
 
-@app.route("/send")
-def send():
 
-    return render_template("send.html")
+@app.route("/login")
+def login():
+
+    return render_template("login.html")
+
+
+@app.route("/auth")
+def auth():
+
+    data = request.args.to_dict()
+
+    if verify_telegram(data):
+
+        session["user"] = data["id"]
+
+        return redirect("/")
+
+    return "Telegram authentication failed"
+
 
 @app.route("/receive")
 def receive():
 
-    evm=load_wallet()
+    if "user" not in session:
+        return redirect("/login")
 
-    sol=load_sol()
+    evm = load_wallet()
+    sol = load_sol()
 
-    return render_template("receive.html",evm=evm,sol=sol)
+    evm_address = None
+    sol_address = None
 
-app.run(host="0.0.0.0",port=3000)
+    if evm:
+        evm_address = evm[0]
+
+        img = qrcode.make(evm_address)
+
+        img.save("static/evm_qr.png")
+
+    if sol:
+        sol_address = sol[0]
+
+        img = qrcode.make(sol_address)
+
+        img.save("static/sol_qr.png")
+
+    return render_template(
+        "receive.html",
+        evm=evm_address,
+        sol=sol_address
+    )
+
+
+@app.route("/send")
+def send():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    return render_template("send.html")
+
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/login")
+
+
+if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT", 3000))
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
