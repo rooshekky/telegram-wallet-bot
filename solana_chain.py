@@ -1,29 +1,29 @@
 import os
 import json
 import base58
-from solana.rpc.api import Client
-from solders.keypair import Keypair
+import requests
+from nacl.signing import SigningKey
 from config import SOL_RPC
 
 SOL_WALLET_FILE = "sol_wallet.json"
 
-client = Client(SOL_RPC)
-
 
 def create_sol_wallet():
 
-    kp = Keypair()
+    key = SigningKey.generate()
 
-    private_key = base58.b58encode(bytes(kp)).decode()
+    private = base58.b58encode(key._seed).decode()
+
+    public = base58.b58encode(key.verify_key.encode()).decode()
 
     data = {
-        "address": str(kp.pubkey()),
-        "private": private_key
+        "address": public,
+        "private": private
     }
 
     json.dump(data, open(SOL_WALLET_FILE, "w"))
 
-    return data["address"]
+    return public
 
 
 def load_sol_wallet():
@@ -38,6 +38,15 @@ def load_sol_wallet():
 
 def get_sol_balance(address):
 
-    balance = client.get_balance(address)
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getBalance",
+        "params": [address]
+    }
 
-    return balance.value / 1_000_000_000
+    r = requests.post(SOL_RPC, json=payload)
+
+    lamports = r.json()["result"]["value"]
+
+    return lamports / 1_000_000_000
