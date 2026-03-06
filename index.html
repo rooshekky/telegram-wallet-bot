@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>Wallet Dashboard</title>
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+padding:40px;
+}
+
+.card{
+background:#1e1e1e;
+padding:20px;
+margin:10px;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Portfolio</h1>
+
+<div class="card">
+<h2>Total Value</h2>
+<h1>${{total}}</h1>
+</div>
+
+{% for coin,value in balances.items() %}
+
+<div class="card">
+<h2>{{coin}}</h2>
+<p>{{value}}</p>
+</div>
+
+{% endfor %}
+
+</body>
+</html>
