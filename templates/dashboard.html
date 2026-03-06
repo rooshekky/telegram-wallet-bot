@@ -1,0 +1,44 @@
+<html>
+<head>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="sidebar">
+<h2>Wallet</h2>
+
+<a href="/">Dashboard</a>
+<a href="/send">Send</a>
+<a href="/receive">Receive</a>
+
+</div>
+
+<div class="main">
+
+<h1>Portfolio</h1>
+
+<div class="card">
+
+<h2>Total Value</h2>
+
+<h1>${{total}}</h1>
+
+</div>
+
+{% for coin,value in balances.items() %}
+
+<div class="card">
+
+<h3>{{coin}}</h3>
+
+<p>{{value}}</p>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</body>
+</html>
