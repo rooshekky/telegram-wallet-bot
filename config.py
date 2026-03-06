@@ -3,11 +3,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("8637194920:AAF2rIXKDvsF5NZYKSoVl2CFAVjWmuhD-aQ")
-OWNER_ID = int(os.getenv("5255390662"))
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+OWNER_ID = int(os.getenv("OWNER_ID"))
 
-ETH_RPC = os.getenv("https://rpc.ankr.com/eth")
-POLYGON_RPC = os.getenv("https://rpc.ankr.com/polygon")
-BSC_RPC = os.getenv("https://rpc.ankr.com/bsc")
-
-SOL_RPC = os.getenv("https://rpc.ankr.com/solana")
+ETH_RPC = os.getenv("ETH_RPC")
+POLYGON_RPC = os.getenv("POLYGON_RPC")
+BSC_RPC = os.getenv("BSC_RPC")
+SOL_RPC = os.getenv("SOL_RPC")
